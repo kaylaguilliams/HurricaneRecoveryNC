@@ -1,0 +1,219 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Data: FEMA Individual Assistance, pulled from API: https://www.fema.gov/openfema-data-page/individuals-and-households-program-valid-registrations-v1 Flood Insurance Claims, pulled from API: https://www.fema.gov/openfema-data-page/fima-nfip-redacted-claims-v1 
+
+# Loading in FEMA Individual Assistance data for NC after Hurricane Matthew
+```{r}
+MATTHEW <- read_csv("C:/mejo390/HurricaneRebuildingNC/matthew_ihp.csv")
+```
+
+# Loading in FEMA Individual Assistance data for NC after Hurricane Florence
+```{r}
+FLORENCE <- read_csv("C:/mejo390/HurricaneRebuildingNC/florence_ihp.csv")
+```
+
+# Adding a column to both datasets called eligibility. Each row will either have a value of "eligible", meaning they received some form of assistance, or "ineligible", meaning they received no assistance. 
+```{r}
+FLORENCE <- FLORENCE %>% 
+  mutate(eligibility = if_else(ihpEligible == 1 | haEligible == 1 | onaEligible == 1 | tsaEligible == 1 | rentalAssistanceEligible == 1 | repairAssistanceEligible == 1 | replacementAssistanceEligible == 1 | personalPropertyEligible == 1, "eligible", "not eligible"))
+
+MATTHEW <- MATTHEW %>%
+   mutate(eligibility = if_else(ihpEligible == 1 | haEligible == 1 | onaEligible == 1 | tsaEligible == 1 | rentalAssistanceEligible == 1 | repairAssistanceEligible == 1 | replacementAssistanceEligible == 1 | personalPropertyEligible == 1, "eligible", "not eligible"))
+```
+
+# How many applications per county? 
+```{r}
+MATTHEW %>%
+  group_by(county) %>%
+  summarise(total_m = n()) %>%
+  arrange(desc(total_m))
+```
+
+```{r}
+FLORENCE %>%
+  group_by(county) %>%
+  summarise(total_f = n()) %>%
+  arrange(desc(total_f))
+```
+
+# I'm focusing on Robeson County so I'm creating datasets that filters just for that county. 
+```{r}
+ROBESON_F <- FLORENCE %>%
+  filter(county == "Robeson (County)")
+
+ROBESON_M <- MATTHEW %>%
+  filter(county == "Robeson (County)")
+```
+
+# And now creating datasets that filters just for Lumberton, the main city in Robeson County. 
+```{r}
+LUMBERTON_M <- ROBESON_M %>%
+  filter(damagedZipCode == 28358 | damagedZipCode == 28359 | damagedZipCode == 28360)
+  
+LUMBERTON_F <- ROBESON_F %>%
+  filter(damagedZipCode == 28358 | damagedZipCode == 28359 | damagedZipCode == 28360)
+```
+
+# What percent of applicants in Robeson were eligible for assistance after Matthew? 
+```{r}
+(nrow(ROBESON_M %>% filter(eligibility == "eligible")) / nrow(ROBESON_M)) * 100
+```
+Just 46% of applicants in Robeson County after Hurricane Matthew were eligible for any type of individual assistance. 
+
+# After Florence? 
+```{r}
+(nrow(ROBESON_F %>% filter(eligibility == "eligible")) / nrow(ROBESON_F)) * 100
+```
+Just 33% of applicants in Robeson County after Hurricane Florence were eligible for any type of individual assistance. 
+
+# What percent of applicants in Lumberton were eligible for assistance after Matthew? 
+```{r}
+(nrow(LUMBERTON_M %>% filter(eligibility == "eligible")) / nrow(LUMBERTON_M)) * 100
+```
+Just 53% of applicants in Lumberton after Hurricane Matthew were eligible for any type of individual assistance. 
+
+# After Florence? 
+```{r}
+(nrow(LUMBERTON_F %>% filter(eligibility == "eligible")) / nrow(LUMBERTON_F)) * 100
+```
+Just 38% of applicants in Lumberton after Hurricane Florence were eligible for any type of individual assistance. 
+
+# How much money did the average eligible applicant in Robeson get after Matthew? 
+```{r}
+(sum(ROBESON_M$ihpAmount) + sum(ROBESON_M$rentalAssistanceAmount) + sum(ROBESON_M$replacementAmount) + sum(ROBESON_M$personalPropertyAmount)) / (nrow(ROBESON_M %>% filter(eligibility == "eligible")))
+```
+
+# After Florence? 
+```{r}
+(sum(ROBESON_F$ihpAmount) + sum(ROBESON_F$rentalAssistanceAmount) + sum(ROBESON_F$replacementAmount) + sum(ROBESON_F$personalPropertyAmount)) / (nrow(ROBESON_F %>% filter(eligibility == "eligible")))
+```
+
+# How much money did the average eligible applicant in Lumberton get after Matthew? 
+```{r}
+(sum(LUMBERTON_M$ihpAmount) + sum(LUMBERTON_M$rentalAssistanceAmount) + sum(LUMBERTON_M$replacementAmount) + sum(LUMBERTON_M$personalPropertyAmount)) / (nrow(LUMBERTON_M %>% filter(eligibility == "eligible")))
+```
+
+# After Florence? 
+```{r}
+(sum(LUMBERTON_F$ihpAmount) + sum(LUMBERTON_F$rentalAssistanceAmount) + sum(LUMBERTON_F$replacementAmount) + sum(LUMBERTON_F$personalPropertyAmount)) / (nrow(LUMBERTON_F %>% filter(eligibility == "eligible")))
+```
+
+# How much money did the average eligible applicant in all of Eastern NC get after Matthew? 
+```{r}
+(sum(MATTHEW$ihpAmount) + sum(MATTHEW$rentalAssistanceAmount) + sum(MATTHEW$replacementAmount) + sum(MATTHEW$personalPropertyAmount)) / (nrow(MATTHEW %>% filter(eligibility == "eligible")))
+```
+
+# After Florence? 
+```{r}
+(sum(FLORENCE$ihpAmount) + sum(FLORENCE$rentalAssistanceAmount) + sum(FLORENCE$replacementAmount) + sum(FLORENCE$personalPropertyAmount)) / (nrow(FLORENCE %>% filter(eligibility == "eligible")))
+```
+
+# How much money did the average eligible renter in Robeson get after Matthew?
+```{r}
+ROBESON_MR <- ROBESON_M %>%
+  filter(ownRent == "Renter", eligibility == "eligible") 
+  
+(sum(ROBESON_MR$ihpAmount) + sum(ROBESON_MR$rentalAssistanceAmount) + sum(ROBESON_MR$replacementAmount) + sum(ROBESON_MR$personalPropertyAmount)) / nrow(ROBESON_MR)
+```
+
+# After Florence? 
+```{r}
+ROBESON_FR <- ROBESON_F %>%
+  filter(ownRent == "Renter", eligibility == "eligible") 
+  
+(sum(ROBESON_FR$ihpAmount) + sum(ROBESON_FR$rentalAssistanceAmount) + sum(ROBESON_FR$replacementAmount) + sum(ROBESON_FR$personalPropertyAmount)) / nrow(ROBESON_FR)
+```
+
+# How much money did the average eligible homeowner in Robeson get after Matthew?
+```{r}
+ROBESON_MO <- ROBESON_M %>%
+  filter(ownRent == "Owner", eligibility == "eligible") 
+  
+(sum(ROBESON_MO$ihpAmount) + sum(ROBESON_MO$rentalAssistanceAmount) + sum(ROBESON_MO$replacementAmount) + sum(ROBESON_MO$personalPropertyAmount)) / nrow(ROBESON_MO)
+```
+
+# After Florence? 
+```{r}
+ROBESON_FO <- ROBESON_F %>%
+  filter(ownRent == "Owner", eligibility == "eligible") 
+  
+(sum(ROBESON_FO$ihpAmount) + sum(ROBESON_FO$rentalAssistanceAmount) + sum(ROBESON_FO$replacementAmount) + sum(ROBESON_FO$personalPropertyAmount)) / nrow(ROBESON_FO)
+```
+
+# Loading in flood insurance claim data
+```{r}
+MCLAIMS <- read_csv("C:/mejo390/HurricaneRebuildingNC/2016.csv")
+FCLAIMS <- read_csv("C:/mejo390/HurricaneRebuildingNC/2018.csv")
+```
+
+# How many claims were made in Robeson after Matthew? 
+```{r}
+nrow(MCLAIMS %>%
+  filter(countyCode == 37155))
+```
+
+# After Florence? 
+```{r}
+nrow(FCLAIMS %>%
+  filter(countyCode == 37155))
+```
+
+# How many claims were made in Lumberton after Matthew? 
+```{r}
+nrow(MCLAIMS %>%
+  filter(reportedZipcode == 28358 | reportedZipcode == 28359 | reportedZipcode == 28359))
+```
+
+# After Florence?
+```{r}
+nrow(FCLAIMS %>%
+  filter(reportedZipcode == 28358 | reportedZipcode == 28359 | reportedZipcode == 28359))
+```
+
+# How much money did the average flood insurance claim in Robeson get after Matthew? 
+```{r}
+RMCLAIMS <- MCLAIMS %>%
+  filter(countyCode == 37155)
+
+(sum(RMCLAIMS$amountPaidOnBuildingClaim, na.rm=TRUE) + sum(RMCLAIMS$amountPaidOnContentsClaim, na.rm=TRUE) + sum(RMCLAIMS$amountPaidOnIncreasedCostOfComplianceClaim, na.rm=TRUE)) / nrow(RMCLAIMS)
+```
+
+# After Florence?
+```{r}
+RFCLAIMS <- FCLAIMS %>%
+  filter(countyCode == 37155)
+
+(sum(RFCLAIMS$amountPaidOnBuildingClaim, na.rm=TRUE) + sum(RFCLAIMS$amountPaidOnContentsClaim, na.rm=TRUE) + sum(RFCLAIMS$amountPaidOnIncreasedCostOfComplianceClaim, na.rm=TRUE)) / nrow(RFCLAIMS)
+```
+
+# How much money did the average flood insurance claim in Lumberton get after Matthew? 
+```{r}
+LMCLAIMS <- MCLAIMS %>%
+   filter(reportedZipcode == 28358 | reportedZipcode == 28359 | reportedZipcode == 28359)
+
+(sum(LMCLAIMS$amountPaidOnBuildingClaim, na.rm=TRUE) + sum(LMCLAIMS$amountPaidOnContentsClaim, na.rm=TRUE) + sum(LMCLAIMS$amountPaidOnIncreasedCostOfComplianceClaim, na.rm=TRUE)) / nrow(LMCLAIMS)
+```
+
+# After Florence?
+```{r}
+LFCLAIMS <- FCLAIMS %>%
+   filter(reportedZipcode == 28358 | reportedZipcode == 28359 | reportedZipcode == 28359)
+
+(sum(LFCLAIMS$amountPaidOnBuildingClaim, na.rm=TRUE) + sum(LFCLAIMS$amountPaidOnContentsClaim, na.rm=TRUE) + sum(LFCLAIMS$amountPaidOnIncreasedCostOfComplianceClaim, na.rm=TRUE)) / nrow(LFCLAIMS)
+```
+
+# Visualizing how much money an applicant can get if they have flood insurance vs. =vs. FEMA's individual assistance program. Using a 2x2 data frame created in Excel using above calculations
+```{r}
+viz <- read_csv("C:/mejo390/HurricaneRebuildingNC/viz.csv")
+```
+
+```{r}
+library(ggplot2)
+ggplot(viz, aes(fill=Program, y=Amount, x=Storms)) + 
+    geom_bar(position="dodge", stat="identity")
+```
+
+
