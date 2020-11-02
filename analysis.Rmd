@@ -1,9 +1,18 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 # Data: FEMA Individual Assistance, pulled from API: https://www.fema.gov/openfema-data-page/individuals-and-households-program-valid-registrations-v1 Flood Insurance Claims, pulled from API: https://www.fema.gov/openfema-data-page/fima-nfip-redacted-claims-v1 
+
+# Loading in packages
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+```
 
 # Loading in FEMA Individual Assistance data for NC after Hurricane Matthew
 ```{r}
@@ -205,15 +214,17 @@ LFCLAIMS <- FCLAIMS %>%
 (sum(LFCLAIMS$amountPaidOnBuildingClaim, na.rm=TRUE) + sum(LFCLAIMS$amountPaidOnContentsClaim, na.rm=TRUE) + sum(LFCLAIMS$amountPaidOnIncreasedCostOfComplianceClaim, na.rm=TRUE)) / nrow(LFCLAIMS)
 ```
 
-# Visualizing how much money an applicant can get if they have flood insurance vs. =vs. FEMA's individual assistance program. Using a 2x2 data frame created in Excel using above calculations
+# Visualizing how much money an applicant can get if they have flood insurance vs. =vs. FEMA's individual assistance program. Using a data frame created in Excel using above calculations
 ```{r}
 viz <- read_csv("C:/mejo390/HurricaneRebuildingNC/viz.csv")
 ```
 
 ```{r}
-library(ggplot2)
-ggplot(viz, aes(fill=Program, y=Amount, x=Storms)) + 
-    geom_bar(position="dodge", stat="identity")
+funding <- ggplot(viz, aes(fill=Program, y=Amount, x=Storms)) + 
+    geom_bar(position="dodge", stat="identity") +
+  labs(title = "How much money is given after a storm, and by who?", subtitle = "The average amount of money a recipient from each program received \nafter Matthew and after Florence.", caption = "Data Source: FEMA OpenData, ReBuild NC. \n Note: ReBuild NC doesn't seperate funding by storm, \nthus the average is the same for both Matthew and Florence.") +
+  theme_classic() + 
+  scale_fill_brewer(palette="GnBu")
 ```
 
 
