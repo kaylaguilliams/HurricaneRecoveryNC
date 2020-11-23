@@ -190,12 +190,12 @@ summary {
 <h1>Loading in packages</h1>
 <pre class="r"><code>library(ggplot2)
 library(tidyverse)</code></pre>
-<pre><code>## -- Attaching packages ----------------------------------------------------------------------------------------- tidyverse 1.3.0 --</code></pre>
+<pre><code>## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --</code></pre>
 <pre><code>## v tibble  3.0.3     v dplyr   1.0.2
 ## v tidyr   1.1.0     v stringr 1.4.0
 ## v readr   1.3.1     v forcats 0.5.0
 ## v purrr   0.3.4</code></pre>
-<pre><code>## -- Conflicts -------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+<pre><code>## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>library(dplyr)</code></pre>
@@ -495,8 +495,8 @@ LUMBERTON_F &lt;- ROBESON_F %&gt;%
 (sum(LFCLAIMS$amountPaidOnBuildingClaim, na.rm=TRUE) + sum(LFCLAIMS$amountPaidOnContentsClaim, na.rm=TRUE) + sum(LFCLAIMS$amountPaidOnIncreasedCostOfComplianceClaim, na.rm=TRUE)) / nrow(LFCLAIMS)</code></pre>
 <pre><code>## [1] 38818.75</code></pre>
 </div>
-<div id="visualizing-how-much-money-an-applicant-can-get-if-they-have-flood-insurance-vs.-vs.-femas-individual-assistance-program.-using-a-data-frame-created-in-excel-using-above-calculations" class="section level1">
-<h1>Visualizing how much money an applicant can get if they have flood insurance vs. =vs. FEMA's individual assistance program. Using a data frame created in Excel using above calculations</h1>
+<div id="visualizing-how-much-money-an-applicant-can-get-if-they-have-flood-insurance-vs.-rebuild-nc-vs.-femas-individual-assistance-program.-using-a-data-frame-created-in-excel-using-above-calculations" class="section level1">
+<h1>Visualizing how much money an applicant can get if they have flood insurance vs. ReBuild NC vs. FEMA's individual assistance program. Using a data frame created in Excel using above calculations</h1>
 <pre class="r"><code>viz &lt;- read_csv(&quot;C:/mejo390/HurricaneRebuildingNC/viz.csv&quot;)</code></pre>
 <pre><code>## Parsed with column specification:
 ## cols(
@@ -509,6 +509,93 @@ LUMBERTON_F &lt;- ROBESON_F %&gt;%
   labs(title = &quot;How much money is given after a storm, and by who?&quot;, subtitle = &quot;The average amount of money a recipient from each program received \nafter Matthew and after Florence.&quot;, caption = &quot;Data Source: FEMA OpenData, ReBuild NC. \n Note: ReBuild NC doesn't seperate funding by storm, \nthus the average is the same for both Matthew and Florence.&quot;) +
   theme_classic() + 
   scale_fill_brewer(palette=&quot;GnBu&quot;)</code></pre>
+</div>
+<div id="how-percent-of-the-county-has-an-active-flood-insurance-policy" class="section level1">
+<h1>How percent of the county has an active flood insurance policy?</h1>
+<pre class="r"><code>policies &lt;- read_csv(&quot;C:/mejo390/HurricaneRebuildingNC/policies.csv&quot;)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   .default = col_double(),
+##   censusTract = col_logical(),
+##   cancellationDateOfFloodPolicy = col_logical(),
+##   condominiumIndicator = col_character(),
+##   deductibleAmountInBuildingCoverage = col_character(),
+##   deductibleAmountInContentsCoverage = col_character(),
+##   floodZone = col_character(),
+##   originalConstructionDate = col_datetime(format = &quot;&quot;),
+##   originalNBDate = col_datetime(format = &quot;&quot;),
+##   policyEffectiveDate = col_datetime(format = &quot;&quot;),
+##   policyTerminationDate = col_datetime(format = &quot;&quot;),
+##   propertyState = col_character(),
+##   rateMethod = col_character(),
+##   regularEmergencyProgramIndicator = col_character(),
+##   reportedCity = col_character(),
+##   id = col_character()
+## )</code></pre>
+<pre><code>## See spec(...) for full column specifications.</code></pre>
+<pre><code>## Warning: 1144816 parsing failures.
+##    row                           col               expected                   actual                                            file
+##  33361 cancellationDateOfFloodPolicy 1/0/T/F/TRUE/FALSE     2020-07-20T04:00:00.000Z 'C:/mejo390/HurricaneRebuildingNC/policies.csv'
+## 349202 reportedZipCode               no trailing characters -                        'C:/mejo390/HurricaneRebuildingNC/policies.csv'
+## 369590 reportedZipCode               no trailing characters -                        'C:/mejo390/HurricaneRebuildingNC/policies.csv'
+## 435771 reportedZipCode               no trailing characters -                        'C:/mejo390/HurricaneRebuildingNC/policies.csv'
+## 441598 cancellationDateOfFloodPolicy 1/0/T/F/TRUE/FALSE     2012-07-31T04:00:00.000Z 'C:/mejo390/HurricaneRebuildingNC/policies.csv'
+## ...... ............................. ...................... ........................ ...............................................
+## See problems(...) for more details.</code></pre>
+<pre class="r"><code>active &lt;- policies %&gt;% filter(policyTerminationDate &gt;= as.Date(&quot;2020-10-27&quot;))
+active &lt;- active %&gt;% filter(countyCode == 37155)
+(nrow(active) / 130625) * 100</code></pre>
+<pre><code>## [1] 0.9163636</code></pre>
+</div>
+<div id="how-percent-of-the-county-had-an-active-flood-insurance-policy-during-matthew" class="section level1">
+<h1>How percent of the county had an active flood insurance policy during Matthew?</h1>
+<pre class="r"><code>activeM &lt;- policies %&gt;% filter(policyEffectiveDate &lt;= as.Date(&quot;2016-10-08&quot;) &amp; policyTerminationDate &gt;= as.Date(&quot;2016-10-10&quot;))
+activeM &lt;- activeM %&gt;% filter(countyCode == 37155)</code></pre>
+<pre class="r"><code>activeF &lt;- policies %&gt;% filter(policyEffectiveDate &lt;= as.Date(&quot;2018-09-12&quot;) &amp;policyTerminationDate &gt;= as.Date(&quot;2018-09-15&quot;))
+activeF &lt;- activeF %&gt;% filter(countyCode == 37155)</code></pre>
+</div>
+<div id="what-percent-of-each-income-level-was-eligible-for-assistance" class="section level1">
+<h1>What percent of each income level was eligible for assistance?</h1>
+<pre class="r"><code>ROBESON_M %&gt;% 
+  group_by(grossIncome, eligibility) %&gt;%
+  summarize(count = n()) %&gt;%
+  arrange(desc(count))</code></pre>
+<pre><code>## `summarise()` regrouping output by 'grossIncome' (override with `.groups` argument)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["grossIncome"],"name":[1],"type":["chr"],"align":["left"]},{"label":["eligibility"],"name":[2],"type":["chr"],"align":["left"]},{"label":["count"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"<$15,000","2":"not eligible","3":"3044"},{"1":"<$15,000","2":"eligible","3":"3029"},{"1":"$15,000-$30,000","2":"not eligible","3":"3008"},{"1":"$15,000-$30,000","2":"eligible","3":"2437"},{"1":"$30,001-$60,000","2":"not eligible","3":"2042"},{"1":"$30,001-$60,000","2":"eligible","3":"1527"},{"1":"0","2":"not eligible","3":"935"},{"1":"$60,001-$120,000","2":"not eligible","3":"823"},{"1":"0","2":"eligible","3":"714"},{"1":"$60,001-$120,000","2":"eligible","3":"638"},{"1":"$120,001-$175,000","2":"not eligible","3":"90"},{"1":">$175,000","2":"not eligible","3":"80"},{"1":"$120,001-$175,000","2":"eligible","3":"61"},{"1":">$175,000","2":"eligible","3":"43"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code>ROBESON_F %&gt;%
+  group_by(grossIncome, eligibility) %&gt;%
+  summarize(count = n()) %&gt;%
+  arrange(desc(count))</code></pre>
+<pre><code>## `summarise()` regrouping output by 'grossIncome' (override with `.groups` argument)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["grossIncome"],"name":[1],"type":["chr"],"align":["left"]},{"label":["eligibility"],"name":[2],"type":["chr"],"align":["left"]},{"label":["count"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"$15,000-$30,000","2":"not eligible","3":"2441"},{"1":"<$15,000","2":"not eligible","3":"2375"},{"1":"$30,001-$60,000","2":"not eligible","3":"1560"},{"1":"<$15,000","2":"eligible","3":"1380"},{"1":"$15,000-$30,000","2":"eligible","3":"1190"},{"1":"0","2":"not eligible","3":"766"},{"1":"$30,001-$60,000","2":"eligible","3":"698"},{"1":"$60,001-$120,000","2":"not eligible","3":"520"},{"1":"0","2":"eligible","3":"300"},{"1":"$60,001-$120,000","2":"eligible","3":"266"},{"1":"$120,001-$175,000","2":"not eligible","3":"42"},{"1":"$120,001-$175,000","2":"eligible","3":"30"},{"1":">$175,000","2":"not eligible","3":"30"},{"1":">$175,000","2":"eligible","3":"12"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code>LUMBERTON_M %&gt;% 
+  group_by(grossIncome, eligibility) %&gt;%
+  summarize(count = n()) %&gt;%
+  arrange(desc(count))</code></pre>
+<pre><code>## `summarise()` regrouping output by 'grossIncome' (override with `.groups` argument)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["grossIncome"],"name":[1],"type":["chr"],"align":["left"]},{"label":["eligibility"],"name":[2],"type":["chr"],"align":["left"]},{"label":["count"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"<$15,000","2":"eligible","3":"1744"},{"1":"$15,000-$30,000","2":"eligible","3":"1337"},{"1":"$15,000-$30,000","2":"not eligible","3":"1248"},{"1":"<$15,000","2":"not eligible","3":"1248"},{"1":"$30,001-$60,000","2":"not eligible","3":"891"},{"1":"$30,001-$60,000","2":"eligible","3":"883"},{"1":"0","2":"not eligible","3":"426"},{"1":"$60,001-$120,000","2":"not eligible","3":"372"},{"1":"$60,001-$120,000","2":"eligible","3":"365"},{"1":"0","2":"eligible","3":"360"},{"1":">$175,000","2":"not eligible","3":"47"},{"1":"$120,001-$175,000","2":"not eligible","3":"44"},{"1":"$120,001-$175,000","2":"eligible","3":"42"},{"1":">$175,000","2":"eligible","3":"22"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code>LUMBERTON_F %&gt;% 
+  group_by(grossIncome, eligibility) %&gt;%
+  summarize(count = n()) %&gt;%
+  arrange(desc(count))</code></pre>
+<pre><code>## `summarise()` regrouping output by 'grossIncome' (override with `.groups` argument)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["grossIncome"],"name":[1],"type":["chr"],"align":["left"]},{"label":["eligibility"],"name":[2],"type":["chr"],"align":["left"]},{"label":["count"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"$15,000-$30,000","2":"not eligible","3":"1090"},{"1":"<$15,000","2":"not eligible","3":"1048"},{"1":"$30,001-$60,000","2":"not eligible","3":"739"},{"1":"<$15,000","2":"eligible","3":"715"},{"1":"$15,000-$30,000","2":"eligible","3":"652"},{"1":"$30,001-$60,000","2":"eligible","3":"419"},{"1":"0","2":"not eligible","3":"358"},{"1":"$60,001-$120,000","2":"not eligible","3":"240"},{"1":"$60,001-$120,000","2":"eligible","3":"183"},{"1":"0","2":"eligible","3":"157"},{"1":"$120,001-$175,000","2":"not eligible","3":"24"},{"1":"$120,001-$175,000","2":"eligible","3":"23"},{"1":">$175,000","2":"not eligible","3":"19"},{"1":">$175,000","2":"eligible","3":"10"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
 </div>
 
 

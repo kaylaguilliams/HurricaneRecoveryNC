@@ -214,7 +214,7 @@ LFCLAIMS <- FCLAIMS %>%
 (sum(LFCLAIMS$amountPaidOnBuildingClaim, na.rm=TRUE) + sum(LFCLAIMS$amountPaidOnContentsClaim, na.rm=TRUE) + sum(LFCLAIMS$amountPaidOnIncreasedCostOfComplianceClaim, na.rm=TRUE)) / nrow(LFCLAIMS)
 ```
 
-# Visualizing how much money an applicant can get if they have flood insurance vs. =vs. FEMA's individual assistance program. Using a data frame created in Excel using above calculations
+# Visualizing how much money an applicant can get if they have flood insurance vs. ReBuild NC vs. FEMA's individual assistance program. Using a data frame created in Excel using above calculations
 ```{r}
 viz <- read_csv("C:/mejo390/HurricaneRebuildingNC/viz.csv")
 ```
@@ -225,6 +225,51 @@ funding <- ggplot(viz, aes(fill=Program, y=Amount, x=Storms)) +
   labs(title = "How much money is given after a storm, and by who?", subtitle = "The average amount of money a recipient from each program received \nafter Matthew and after Florence.", caption = "Data Source: FEMA OpenData, ReBuild NC. \n Note: ReBuild NC doesn't seperate funding by storm, \nthus the average is the same for both Matthew and Florence.") +
   theme_classic() + 
   scale_fill_brewer(palette="GnBu")
+```
+
+# How percent of the county has an active flood insurance policy?
+```{r}
+policies <- read_csv("C:/mejo390/HurricaneRebuildingNC/policies.csv")
+```
+
+```{r}
+active <- policies %>% filter(policyTerminationDate >= as.Date("2020-10-27"))
+active <- active %>% filter(countyCode == 37155)
+(nrow(active) / 130625) * 100
+```
+
+# How percent of the county had an active flood insurance policy during Matthew?
+```{r}
+activeM <- policies %>% filter(policyEffectiveDate <= as.Date("2016-10-08") & policyTerminationDate >= as.Date("2016-10-10"))
+activeM <- activeM %>% filter(countyCode == 37155)
+```
+
+```{r}
+activeF <- policies %>% filter(policyEffectiveDate <= as.Date("2018-09-12") &policyTerminationDate >= as.Date("2018-09-15"))
+activeF <- activeF %>% filter(countyCode == 37155)
+```
+
+# What percent of each income level was eligible for assistance?
+```{r}
+ROBESON_M %>% 
+  group_by(grossIncome, eligibility) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+ROBESON_F %>%
+  group_by(grossIncome, eligibility) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+LUMBERTON_M %>% 
+  group_by(grossIncome, eligibility) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+LUMBERTON_F %>% 
+  group_by(grossIncome, eligibility) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
 ```
 
 
